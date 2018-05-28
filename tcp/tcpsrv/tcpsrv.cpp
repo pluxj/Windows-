@@ -7,11 +7,27 @@
 #include <WS2tcpip.h>
 #pragma comment(lib,"ws2_32.lib")
 
+//阻塞函数采用线程来保证程序运行
+DWORD WINAPI connectsucess(LPVOID lpParameter); //监听是否连接成功
+DWORD WINAPI recvmessage(LPVOID lpParameter);   //监听是否收到消息
+
+CRITICAL_SECTION g_cs;
+HANDLE hMutex = NULL;
+
 int main(int argc, _TCHAR* argv[])
 {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
+	HANDLE hThread1;
+	HANDLE hThread2;
+
+	hThread1 = CreateThread(NULL, 0, connectsucess, NULL, 0, NULL);
+	hThread2 = CreateThread(NULL, 0, recvmessage, NULL, 0, NULL);
+	CloseHandle(hThread2);
+	CloseHandle(hThread1);
+
+	hMutex = CreateMutex(NULL, FALSE, NULL);
 
 	wVersionRequested = MAKEWORD(1, 1); //因为基于Intel的CPU是低位现先存，有的机器是高位先存，为了保证数据的正确性，使用MAKEWORD函数，该函数的作用是获得wVersionRequested的正确值
 	err = WSAStartup(wVersionRequested, &wsaData); 
@@ -66,5 +82,15 @@ int main(int argc, _TCHAR* argv[])
 	closesocket(sockSrv);
 	system("pause");
 	return 1;
+}
+
+DWORD WINAPI connectsucess(LPVOID lpParameter)
+{
+	while (TRUE)
+	{
+		WaitForSingleObject(hMutex, INFINITE);
+		sockSrv=
+
+	}
 }
 
